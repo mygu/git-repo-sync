@@ -11,6 +11,7 @@ var gitDeploy = require('./git_deploy');
 
 var GIT_CLONE_USER_NAME = process.env.GIT_CLONE_USER_NAME || '"admin"'; // git配置用户名
 var GIT_CLONE_USER_EMAIL = process.env.GIT_CLONE_USER_EMAIL || '"admin@admin.com"'; // git配置邮箱
+var GIT_CLONE_REPOSITORY_PROTOCOL = process.env.GIT_CLONE_REPOSITORY_PROTOCOL || "https"; // git克隆仓库的协议
 var GIT_CLONE_REPOSITORY_HOST = process.env.GIT_CLONE_REPOSITORY_HOST; // git克隆仓库的域名
 var GIT_CLONE_REPOSITORY_AUTHOR = process.env.GIT_CLONE_REPOSITORY_AUTHOR; // git克隆仓库的作者
 var GIT_CLONE_REPOSITORY_USERNAME = process.env.GIT_CLONE_REPOSITORY_USERNAME; // git克隆仓库的用户名
@@ -24,6 +25,7 @@ var GIT_CLONE_REPOSITORY = process.env.GIT_CLONE_REPOSITORY;
 
 var GIT_DEPLOY_USER_NAME = process.env.GIT_DEPLOY_USER_NAME || '"admin"'; // git配置部提交户名，多个配置用英文逗号分隔
 var GIT_DEPLOY_USER_EMAIL = process.env.GIT_DEPLOY_USER_EMAIL || '"admin@admin.com"'; // git配置提交邮箱，多个配置用英文逗号分隔
+var GIT_DEPLOY_REPOSITORY_PROTOCOL = process.env.GIT_DEPLOY_REPOSITORY_PROTOCOL || "https"; // git提交仓库的协议，多个配置用英文逗号分隔
 var GIT_DEPLOY_REPOSITORY_HOST = process.env.GIT_DEPLOY_REPOSITORY_HOST; // git提交仓库的域名，多个配置用英文逗号分隔
 var GIT_DEPLOY_REPOSITORY_AUTHOR = process.env.GIT_DEPLOY_REPOSITORY_AUTHOR; // git提交仓库的作者，多个配置用英文逗号分隔
 var GIT_DEPLOY_REPOSITORY_USERNAME = process.env.GIT_DEPLOY_REPOSITORY_USERNAME; // git提交仓库的用户名，多个配置用英文逗号分隔
@@ -95,7 +97,10 @@ function checkCloneProcessEnv() {
     var result = false;
 
     if (!GIT_CLONE_REPOSITORY) {
-        if (!GIT_CLONE_REPOSITORY_HOST) {
+
+        if (!GIT_CLONE_REPOSITORY_PROTOCOL) {
+            console.log('请配置克隆仓库的协议：GIT_CLONE_REPOSITORY_PROTOCOL');
+        }else if (!GIT_CLONE_REPOSITORY_HOST) {
             console.log('请配置克隆仓库的域名：GIT_CLONE_REPOSITORY_HOST');
         } else if (!GIT_CLONE_REPOSITORY_AUTHOR) {
             console.log('请配置克隆仓库的作者：GIT_CLONE_REPOSITORY_AUTHOR');
@@ -108,6 +113,7 @@ function checkCloneProcessEnv() {
         } else if (!GIT_CLONE_REPOSITORY_BRANCH) {
             console.log('请配置克隆仓库的分支：GIT_CLONE_REPOSITORY_BRANCH');
         } else {
+            var protocol = GIT_CLONE_REPOSITORY_PROTOCOL;
             var host = GIT_CLONE_REPOSITORY_HOST;
             var author = GIT_CLONE_REPOSITORY_AUTHOR;
             var username = GIT_CLONE_REPOSITORY_USERNAME;
@@ -115,7 +121,7 @@ function checkCloneProcessEnv() {
             var project = GIT_CLONE_REPOSITORY_PROJECT;
             var branch = GIT_CLONE_REPOSITORY_BRANCH;
 
-            var repositoryUrl = `https://${username}:${password}@${host}/${author}/${project}.git,${branch}`;
+            var repositoryUrl = `${protocol}://${username}:${password}@${host}/${author}/${project}.git,${branch}`;
 
             GIT_CLONE_REPOSITORY = repositoryUrl;
             result = true;
@@ -134,8 +140,10 @@ function checkCloneProcessEnv() {
 function checkDeployProcessEnv() {
     var result = false;
 
-    if (!GIT_DEPLOY_REPOSITORY) {
-        if (!GIT_DEPLOY_REPOSITORY_HOST) {
+    if (!GIT_DEPLOY_REPOSITORY_PROTOCOL) {
+        if (!GIT_DEPLOY_REPOSITORY_PROTOCOL) {
+            console.log('请配置提交仓库的域名，多个配置用英文逗号分隔：GIT_DEPLOY_REPOSITORY_PROTOCOL');
+        }else if (!GIT_DEPLOY_REPOSITORY_HOST) {
             console.log('请配置提交仓库的域名，多个配置用英文逗号分隔：GIT_DEPLOY_REPOSITORY_HOST');
         } else if (!GIT_DEPLOY_REPOSITORY_AUTHOR) {
             console.log('请配置提交仓库的作者，多个配置用英文逗号分隔：GIT_DEPLOY_REPOSITORY_AUTHOR');
@@ -149,6 +157,7 @@ function checkDeployProcessEnv() {
             console.log('请配置提交仓库的分支，多个配置用英文逗号分隔：GIT_DEPLOY_REPOSITORY_BRANCH');
         } else {
             var repositories = [];
+            var multiProtocol = GIT_DEPLOY_REPOSITORY_PROTOCOL.split(',');
             var multiHost = GIT_DEPLOY_REPOSITORY_HOST.split(',');
             var multiAuthor = GIT_DEPLOY_REPOSITORY_AUTHOR.split(',');
             var multiUsername = GIT_DEPLOY_REPOSITORY_USERNAME.split(',');
@@ -157,6 +166,7 @@ function checkDeployProcessEnv() {
             var multiBranch = GIT_DEPLOY_REPOSITORY_BRANCH.split(',');
 
             for (var i = 0, len = multiHost.length; i < len; i++) {
+                var protocol = multiProtocol[i];
                 var host = multiHost[i];
                 var author = multiAuthor[i];
                 var username = i < multiUsername.length ? multiUsername[i] : multiUsername[i - 1];
@@ -164,7 +174,7 @@ function checkDeployProcessEnv() {
                 var project = i < multiProject.length ? multiProject[i] : multiProject[i - 1];
                 var branch = i < multiBranch.length ? multiBranch[i] : multiBranch[i - 1];
 
-                var repositoryUrl = `https://${username}:${password}@${host}/${author}/${project}.git,${branch}`;
+                var repositoryUrl = `${protocol}://${username}:${password}@${host}/${author}/${project}.git,${branch}`;
                 repositories.push(repositoryUrl);
             }
 
